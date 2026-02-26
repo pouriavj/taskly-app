@@ -5,11 +5,13 @@ import {
   Text,
   TextInput,
   View,
+  LayoutAnimation,
 } from "react-native";
 import { ShoppingListItem } from "../components/ShoppingListItem";
 import { theme } from "../theme";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import uuid from "react-native-uuid";
+import { getFromStorage, saveToStorage } from "../utils/storage";
 
 type ShoppingListItemType = {
   id: string;
@@ -18,9 +20,22 @@ type ShoppingListItemType = {
   lastUpdatedTimestamp: number;
 };
 
+const storageKey = "shopping-list";
+
 export default function App() {
   const [value, setValue] = useState("");
   const [shoppingList, setShoppingList] = useState<ShoppingListItemType[]>([]);
+
+  useEffect(() => {
+    const fetchInitial = async () => {
+      const data = await getFromStorage(storageKey);
+      if (data) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setShoppingList(data);
+      }
+    };
+    fetchInitial();
+  }, []);
 
   const handleSubmit = () => {
     if (value) {
@@ -28,13 +43,17 @@ export default function App() {
         { id: uuid.v4(), name: value, lastUpdatedTimestamp: Date.now() },
         ...shoppingList,
       ];
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setShoppingList(newShoppingList);
+      saveToStorage(storageKey, newShoppingList);
       setValue("");
     }
   };
 
   const handleDelete = (id: string) => {
     const newShoppingList = shoppingList.filter((item) => item.id !== id);
+    saveToStorage(storageKey, newShoppingList);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setShoppingList(newShoppingList);
   };
   const handleToggleComplete = (id: string) => {
@@ -50,6 +69,8 @@ export default function App() {
       }
       return item;
     });
+    saveToStorage(storageKey, newShoppingList);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setShoppingList(newShoppingList);
   };
 
