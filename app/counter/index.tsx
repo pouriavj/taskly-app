@@ -1,11 +1,39 @@
+import React from 'react';
+import { Button, View, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  withTiming,
+} from 'react-native-reanimated';
+import { Svg, Circle } from 'react-native-svg';
 
-import { Text, View, StyleSheet } from "react-native";
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export default function CounterScreen() {
-  
+  const r = useSharedValue<number>(20);
+
+  const handlePress = () => {
+    r.value += 10;
+  };
+
+  // highlight-start
+  const animatedProps = useAnimatedProps(() => ({
+    r: withTiming(r.value),
+  }));
+  // highlight-end
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Counter</Text>
+      <Svg style={styles.svg}>
+        <AnimatedCircle
+          cx="50%"
+          cy="50%"
+          fill="#b58df1"
+          // highlight-next-line
+          animatedProps={animatedProps}
+        />
+      </Svg>
+      <Button onPress={handlePress} title="Click me" />
     </View>
   );
 }
@@ -13,11 +41,10 @@ export default function CounterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff",
+    alignItems: 'center',
   },
-  text: {
-    fontSize: 24,
+  svg: {
+    height: 250,
+    width: '100%',
   },
 });
